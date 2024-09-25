@@ -1,11 +1,14 @@
 package com.example.quiztory.ui.components
 
 
+import HistoricalLocation
 import MapScreenViewModel
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,7 +30,8 @@ import com.google.maps.android.compose.MarkerState
 @Composable
 fun AddEventLocationMap(
     onMapLongClick:(LatLng)->Unit,
-    viewModel: MapScreenViewModel
+    viewModel: MapScreenViewModel,
+    navController: NavController, // Dodaj navController kao parametar
 ){
 
     val cevm = MapScreenViewModel
@@ -65,6 +69,7 @@ fun AddEventLocationMap(
     }
     Log.d("MapViewModel", "Lat: ${viewModel.lat.value}, Lng: ${viewModel.lng.value}")
 
+    val historicalLocations by viewModel.historicalLocations.collectAsState()
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
@@ -72,11 +77,24 @@ fun AddEventLocationMap(
         properties = properties,
         uiSettings = uiSettings,
         onMapClick = {latLng -> onMapLongClick(latLng)},
-        onPOIClick = {POI -> onMapLongClick(POI.latLng)}
+        onPOIClick = {POI -> onMapLongClick(POI.latLng)},
+
     ) {
         Marker(
             state = MarkerState(LatLng(viewModel.lat.value, viewModel.lng.value))
         )
+        // Prikazivanje svih istorijskih lokacija kao markere
+        historicalLocations.forEach { location ->
+            Marker(
+                state = MarkerState(LatLng(location.position.latitude, location.position.longitude)),
+                title = location.title,
+                snippet = location.description,
+                onInfoWindowClick = {
+                    // Kada korisnik klikne na marker, prikaz kviz pitanja
+                    //navController.navigate("quiz/${location.id}")
+                    navController.navigate(Screen.Quiz.name)
+                }
+            )
     }
 }
 @Composable
@@ -135,47 +153,5 @@ fun NewEventLocationPreviewMap(navController: NavController, cevm: MapScreenView
         )
     }
 }
+}
 
-//@Composable
-//fun EventLocationPreviewMap(event:Event,Height:Int = 250){
-//    val uiSettings by remember { mutableStateOf(MapUiSettings(
-//        zoomControlsEnabled = true,
-//        mapToolbarEnabled = false,
-//        scrollGesturesEnabled = true,
-//        tiltGesturesEnabled = false,
-//        scrollGesturesEnabledDuringRotateOrZoom = false,
-//        zoomGesturesEnabled = true,
-//        myLocationButtonEnabled = true,
-//        compassEnabled = true,
-//        rotationGesturesEnabled = true,
-//        indoorLevelPickerEnabled = false
-//    )) }
-//    val properties by remember { mutableStateOf(MapProperties(
-//        mapType = MapType.NORMAL,
-//    )) }
-//
-//    val cameraPositionState by remember { mutableStateOf(
-//        CameraPositionState(
-//            CameraPosition(
-//                LatLng(event.lat, event.lng),
-//                15f,
-//                0f,
-//                0f
-//            )
-//        )
-//    )}
-//
-//    GoogleMap(
-//        modifier = Modifier
-//            .height(Height.dp)
-//            .fillMaxSize(),
-//        cameraPositionState = cameraPositionState,
-//        properties = properties,
-//        uiSettings = uiSettings,
-//    ){
-//        Marker(
-//            state = MarkerState(LatLng(event.lat, event.lng)),
-//            //title = Marker
-//        )
-//    }
-//}

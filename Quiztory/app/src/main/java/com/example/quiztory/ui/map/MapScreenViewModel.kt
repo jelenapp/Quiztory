@@ -32,7 +32,9 @@ class MapScreenViewModel (
     // Lista istorijskih lokacija
     private val _historicalLocations = MutableStateFlow<List<HistoricalLocation>>(emptyList())
     val historicalLocations: StateFlow<List<HistoricalLocation>> = _historicalLocations
-
+    init {
+        loadHistoricalLocations() // Pozivanje funkcije prilikom inicijalizacije ViewModel-a
+    }
     // Provera dozvola
     private fun hasLocationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -86,19 +88,93 @@ class MapScreenViewModel (
             val preloadedLocations = listOf(
                 HistoricalLocation(
                     id = 1L,
-                    title = "Kalemegdan Fortress",
-                    description = "Historic fortress in Belgrade.",
-                    position = LatLng(44.8221, 20.4517)
+                    title = "Spomenik oslobodiocima Nisa",
+                    description = "Trg kralja Milana",
+                    position = LatLng(43.32224428625793, 21.895896158653333)
                 ),
                 HistoricalLocation(
                     id = 2L,
-                    title = "Novi Sad Fortress",
-                    description = "Petrovaradin Fortress in Novi Sad.",
-                    position = LatLng(45.2517, 19.8622)
+                    title = "Trg kralja Milana",
+                    description = "Generala Milojka Lesjanina 8, Nis",
+                    position = LatLng(43.3233682386596, 21.896067821731087)
+                ),
+                HistoricalLocation(
+                    id = 3L,
+                    title = "Niska tvrdjava",
+                    description = "Djuke Dinic, Nis",
+                    position = LatLng(43.32723947110277, 21.89546700694617)
+                ),
+                HistoricalLocation(
+                    id = 4L,
+                    title = "Park Svetog Save",
+                    description = "Pariske Komune 11, Nis",
+                    position = LatLng(43.3219055325647, 21.91938212968041)
+                ),
+                HistoricalLocation(
+                    id = 5L,
+                    title = "Cele Kula",
+                    description = "Bulevar dr Zorana Djindjica, Nis",
+                    position = LatLng(43.31353763111081, 21.922901187706334)
+                ),
+                HistoricalLocation(
+                    id = 6L,
+                    title = "Spomenik Stevanu Sremcu i Kalci",
+                    description = "Kopitareva, Nis",
+                    position = LatLng(43.31891327204544, 21.895280939483666)
+                ),
+                HistoricalLocation(
+                    id = 7L,
+                    title = "Spomenik palim vazduhoplovcima",
+                    description = "Episkopska, Nis",
+                    position = LatLng(43.314835237721184, 21.89508144220371)
+                ),
+                HistoricalLocation(
+                    id = 8L,
+                    title = "Spomenik poginulim Crvenoarmejcima",
+                    description = "Trg Kralja Aleksandra Ujedinitelja 11, Nis",
+                    position = LatLng(43.318287722136866, 21.890703826861937)
+                ),
+                HistoricalLocation(
+                    id = 9L,
+                    title = "Spomenik Sabanu Bajramovicu",
+                    description = "Nisavski kej, Nis",
+                    position = LatLng(43.32356292937282, 21.897844084713718)
+                ),
+                HistoricalLocation(
+                    id = 10L,
+                    title = "Test",
+                    description = "Pirot",
+                    position = LatLng(43.16276273763927, 22.600519012015237)
                 )
+
             )
             _historicalLocations.value = preloadedLocations
         }
+    }
+    fun checkProximityToLocations(userLocation: Location, historicalLocations: List<HistoricalLocation>): Boolean {
+        val thresholdDistance = 50  // Prag u metrima
+
+        for (location in historicalLocations) {
+            val locationPosition = Location("").apply {
+                latitude = location.position.latitude
+                longitude = location.position.longitude
+            }
+
+            val distance = userLocation.distanceTo(locationPosition)
+
+            if (distance <= thresholdDistance) {
+                // Korisnik je u blizini lokacije, može da odgovori na pitanje
+                return true
+            }
+        }
+        return false
+    }
+    fun getLocationById(id: String): HistoricalLocation? {
+        return _historicalLocations.value.find { it.id.toString() == id }
+    }
+
+    fun addPointsToUser(points: Int) {
+        // Ažuriranje bodova korisnika u Firebase ili lokalnoj bazi
     }
 
 

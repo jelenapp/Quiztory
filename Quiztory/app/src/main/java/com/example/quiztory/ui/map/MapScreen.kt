@@ -7,10 +7,13 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.quiztory.Screen
+import com.example.quiztory.models.data.entities.Quiz
 import com.example.quiztory.ui.components.AddEventLocationMap
-import com.example.quiztory.ui.components.NewEventLocationPreviewMap
 import com.google.android.gms.location.LocationServices
 
 @Composable
@@ -53,6 +56,7 @@ fun MapScreen(viewModel: MapScreenViewModel,
         }
     }
     val userLocation by viewModel.userLocation.collectAsState()
+    val historicalLocations by viewModel.historicalLocations.collectAsState()
 
     // Provera da li je lokacija učitana pre nego što se prikaže mapa
     if (userLocation != null) {
@@ -60,7 +64,8 @@ fun MapScreen(viewModel: MapScreenViewModel,
             onMapLongClick = { latLng ->
                 navController.navigate(Screen.AddEventMapLocation.name)
             },
-            viewModel = viewModel
+            viewModel = viewModel,
+            navController=navController,
         )
     } else {
         // Placeholder ili loader dok se učitava lokacija
@@ -73,15 +78,4 @@ fun MapScreen(viewModel: MapScreenViewModel,
     }
 
 
-    // Tvoja UI logika za prikaz mape i lokacija
-//    Box(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .border(
-//                9.dp,
-//                color = Color.Black
-//            )
-//    ) {
-//        NewEventLocationPreviewMap(navController, viewModel)
-//    }
 }

@@ -21,10 +21,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -41,11 +39,12 @@ import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.FirebaseFirestore
 import android.Manifest
 
-import android.widget.Toast
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import com.example.quiztory.services.location.LocationService
-
+//import com.example.quiztory.ui.quiz.QuizScreen
 
 class MainActivity : ComponentActivity() {
     private val LOCATION_PERMISSION_REQUEST_CODE = 1000 // Definišite konstantu za kod zahteva
@@ -147,6 +146,7 @@ fun QuiztoryApp(context: Context) {
                 composable(Screen.Start.name) {
                     StartScreen(navController = navController)
                 }
+
                 composable(Screen.Map.name) {
                     // Uzimanje konteksta i instanciranja ViewModel-a
                     val context = LocalContext.current
@@ -175,9 +175,33 @@ fun QuiztoryApp(context: Context) {
                             createEventVM.setCoordinates(latLng)
                             navController.navigate(Screen.CreateEvent.name)
                         },
-                        viewModel = mapScreenViewModel
+                        viewModel = mapScreenViewModel,
+                        navController=navController
                     )
-                }
+                }// Ruta za QuizScreen
+//                composable(
+//                    route = "${Screen.Quiz.name}/{locationId}",
+//                    arguments = listOf(navArgument("locationId") { type = NavType.LongType })
+//                ) { backStackEntry ->
+//                    val locationId = backStackEntry.arguments?.getLong("locationId") ?: return@composable
+//                    val quizViewModel: MapScreenViewModel = viewModel() // Instanciranje QuizViewModel
+//                    QuizScreen(locationId, quizViewModel.toString(), navController) // Prosledi ID lokacije i viewModel
+//                }
+//                // Ruta za QuizScreen
+//                composable(
+//                    route = "${Screen.Quiz.name}/{quizId}/{locationId}",
+//                    arguments = listOf(
+//                        navArgument("quizId") { type = NavType.StringType },
+//                        navArgument("locationId") { type = NavType.StringType }
+//                    )
+//                ) { backStackEntry ->
+//                    val quizId = backStackEntry.arguments?.getString("quizId")
+//                    val locationId = backStackEntry.arguments?.getString("locationId")
+//
+//                    // Dobijanje kviza
+//                    val quiz = viewModel.getQuizById(quizId) // Implementirajte ovu funkciju
+//                    QuizScreen(quiz!!, locationId!!, viewModel, navController)
+//                }
             }
         }
 //        Column(
@@ -212,6 +236,11 @@ fun QuiztoryApp(context: Context) {
             }) {
                 Text("Stop Service")
             }
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            )
         }
     }
 }
@@ -233,26 +262,29 @@ enum class Screen {
     EditProfile,
     Penalties,
     AddReminder,
-    MyPosts
+    MyPosts,
+    Quiz
 }
-@Composable
-fun MainScreen(onStartService: () -> Unit, onStopService: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Button(onClick = onStartService) {
-            Text("Start Service")
-        }
-        Button(onClick = onStopService) {
-            Text("Stop Service")
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    MainScreen(onStartService = {}, onStopService = {})
-}
+//TODO DA LI TREBA??
+//@Composable
+//fun MainScreen(onStartService: () -> Unit, onStopService: () -> Unit) {
+//    Column(
+//        modifier = Modifier.fillMaxSize(),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Button(onClick = onStartService) {
+//            Text("Start Service")
+//        }
+//        Button(onClick = onStopService) {
+//            Text("Stop Service")
+//        }
+//
+//    }
+//}
+//
+//@Preview(showBackground = true)
+//@Composable
+//fun DefaultPreview() {
+//    MainScreen(onStartService = {}, onStopService = {})
+//}
