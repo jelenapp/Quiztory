@@ -44,6 +44,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import com.example.quiztory.services.location.LocationService
+import com.example.quiztory.ui.quiz.QuizScreen
+
 //import com.example.quiztory.ui.quiz.QuizScreen
 
 class MainActivity : ComponentActivity() {
@@ -202,6 +204,18 @@ fun QuiztoryApp(context: Context) {
 //                    val quiz = viewModel.getQuizById(quizId) // Implementirajte ovu funkciju
 //                    QuizScreen(quiz!!, locationId!!, viewModel, navController)
 //                }
+                composable(
+                    route = "quiz/{locationId}",
+                    arguments = listOf(navArgument("locationId") { type = NavType.LongType }
+                        //navArgument("userId") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
+                    val locationId = backStackEntry.arguments?.getLong("locationId")
+                    //val userId = backStackEntry.arguments?.getString("userId")
+                    if (locationId != null ) {
+                        QuizScreen(locationId = locationId, navController = navController)
+                    }
+                }
             }
         }
 //        Column(

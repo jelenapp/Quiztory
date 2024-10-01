@@ -86,17 +86,25 @@ fun AddEventLocationMap(
         // Prikazivanje svih istorijskih lokacija kao markere
         historicalLocations.forEach { location ->
             Marker(
-                state = MarkerState(LatLng(location.position.latitude, location.position.longitude)),
+                state = MarkerState(
+                    LatLng(
+                        location.position.latitude,
+                        location.position.longitude
+                    )
+                ),
                 title = location.title,
                 snippet = location.description,
                 onInfoWindowClick = {
-                    // Kada korisnik klikne na marker, prikaz kviz pitanja
-                    //navController.navigate("quiz/${location.id}")
-                    navController.navigate(Screen.Quiz.name)
-                }
+                    Log.d("MarkerClick", "Navigating to quiz/${location.id}")
+                    try {
+                        // Navigacija ka QuizScreen pri kliku na marker
+                        navController.navigate("quiz/${location.id}")
+                    } catch (e: Exception) {
+                        Log.e("NavigationError", "Error navigating to quiz screen: ${e.localizedMessage}")
+                    }                }
             )
+        }
     }
-}
 @Composable
 fun NewEventLocationPreviewMap(navController: NavController, cevm: MapScreenViewModel) {
     val uiSettings by remember {
