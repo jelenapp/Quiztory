@@ -13,26 +13,9 @@ import kotlinx.coroutines.tasks.await
 
 class AccountService constructor() {
 
-   // private val dbApi = DbApi()
-
     val currentUserId: String
         get() = Firebase.auth.currentUser?.uid.orEmpty()
 
-    /*
-//    override val currentUser: Flow<User?>
-//        get() = callbackFlow {
-//            val listener =
-//                FirebaseAuth.AuthStateListener { auth ->
-//                    this.trySend(auth.currentUser?.let { User(id = it.uid,
-//                                                            permissions = UserPermissions.REGISTERED,
-//                                                            email = null,
-//                                                            username = null
-//                    ) })
-//                }
-//            Firebase.auth.addAuthStateListener(listener)
-//            awaitClose { Firebase.auth.removeAuthStateListener(listener) }
-//        }
-*/
 
 
     fun hasUser(): Boolean {
@@ -89,10 +72,6 @@ class AccountService constructor() {
 
     suspend fun signOut() {
         Firebase.auth.signOut()
-    }
-
-    suspend fun deleteAccount() {
-        Firebase.auth.currentUser!!.delete().await()
     }
 
 }

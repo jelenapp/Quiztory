@@ -2,6 +2,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.util.Log
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
@@ -9,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -48,7 +50,18 @@ class MapScreenViewModel (
     var lng = mutableStateOf(21.896104)  // Inicijalno postavljeno na Niš, kasnije se ažurira
         private set
 
-
+    fun addHistoricalLocationToFirestore(location: HistoricalLocation) {
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.collection("historical_locations")
+            .document(location.id.toString()) // Možete koristiti ID ili generisati novi
+            .set(location)
+            .addOnSuccessListener {
+                Log.d("Firestore", "Lokacija uspešno dodata: ${location.title}")
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Greška prilikom dodavanja lokacije: ", e)
+            }
+    }
     // Učitavanje trenutne lokacije korisnika uz proveru dozvola
     fun loadUserLocation(onPermissionDenied: () -> Unit) {
         viewModelScope.launch {
@@ -149,6 +162,10 @@ class MapScreenViewModel (
 
             )
             _historicalLocations.value = preloadedLocations
+            // Dodajem svaku lokaciju u Firestore
+            for (location in preloadedLocations) {
+                addHistoricalLocationToFirestore(location)
+            }
         }
     }
     fun checkProximityToLocations(userLocation: Location, historicalLocations: List<HistoricalLocation>): Boolean {

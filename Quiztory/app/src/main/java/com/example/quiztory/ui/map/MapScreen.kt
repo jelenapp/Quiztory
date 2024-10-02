@@ -1,30 +1,20 @@
 
 import android.Manifest
 import android.content.Context
-import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.quiztory.Screen
-import com.example.quiztory.models.data.entities.Quiz
-import com.example.quiztory.ui.components.AddEventLocationMap
+import com.example.quiztory.ui.components.LocationMap
+//import com.example.quiztory.ui.components.AddEventLocationMap
 import com.google.android.gms.location.LocationServices
 
 @Composable
@@ -60,9 +50,9 @@ fun MapScreen(viewModel: MapScreenViewModel,
 
     // Provera da li je lokacija učitana pre nego što se prikaže mapa
     if (userLocation != null) {
-        AddEventLocationMap(
+        LocationMap(
             onMapLongClick = { latLng ->
-                navController.navigate(Screen.AddEventMapLocation.name)
+                navController.navigate(Screen.LocationMap.name)
             },
             viewModel = viewModel,
             navController=navController,

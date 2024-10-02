@@ -77,26 +77,6 @@ class LocationService : Service() {
     }
 
     private fun sendLocationToServer(location: Location) {
-//        // HTTP request ka serveru sa trenutnom lokacijom
-//        val url = "https://yourserver.com/location"
-//        val requestBody = JSONObject().apply {
-//            put("latitude", location.latitude)
-//            put("longitude", location.longitude)
-//        }
-//
-//        val request = JsonObjectRequest(
-//            Request.Method.POST, url, requestBody,
-//            Response.Listener { response ->
-//                if (response.getBoolean("object_nearby")) {
-//                    showNotification("Objekat u blizini!")
-//                }
-//            },
-//            Response.ErrorListener { error ->
-//                // Obradi grešku
-//            }
-//        )
-//
-//        Volley.newRequestQueue(this).add(request)
         val firestore = FirebaseFirestore.getInstance()
 
         // Kreiraj mapu sa koordinatama
