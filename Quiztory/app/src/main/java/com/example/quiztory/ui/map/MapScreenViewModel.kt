@@ -8,19 +8,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.quiztory.ui.list.HistoricalLocation
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-
-data class HistoricalLocation(
-    val id: Long,
-    val title: String,
-    val description: String,
-    val position: LatLng
-)
 
 class MapScreenViewModel (
     private val fusedLocationClient: FusedLocationProviderClient,
@@ -34,8 +28,14 @@ class MapScreenViewModel (
     // Lista istorijskih lokacija
     private val _historicalLocations = MutableStateFlow<List<HistoricalLocation>>(emptyList())
     val historicalLocations: StateFlow<List<HistoricalLocation>> = _historicalLocations
+
+    private val _userAddedLocations = MutableStateFlow<List<HistoricalLocation>>(emptyList())
+    val userAddedLocations: StateFlow<List<HistoricalLocation>> = _userAddedLocations
+
     init {
         loadHistoricalLocations() // Pozivanje funkcije prilikom inicijalizacije ViewModel-a
+        loadUserHistoricalLocations()
+
     }
     // Provera dozvola
     private fun hasLocationPermission(): Boolean {
@@ -52,112 +52,146 @@ class MapScreenViewModel (
 
     fun addHistoricalLocationToFirestore(location: HistoricalLocation) {
         val firestore = FirebaseFirestore.getInstance()
-        firestore.collection("historical_locations")
-            .document(location.id.toString()) // Možete koristiti ID ili generisati novi
-            .set(location)
+        val documentReference = if (location.id != null) {
+            firestore.collection("historical_locations").document(location.id.toString())
+        } else {
+            firestore.collection("historical_locations").document()
+        }
+
+        documentReference.set(location)
             .addOnSuccessListener {
-                Log.d("Firestore", "Lokacija uspešno dodata: ${location.title}")
+                //Log.d("Firestore", "Lokacija uspešno dodata: ${location.title}")
             }
             .addOnFailureListener { e ->
-                Log.e("Firestore", "Greška prilikom dodavanja lokacije: ", e)
+                //Log.e("Firestore", "Greška prilikom dodavanja lokacije: ", e)
             }
     }
-    // Učitavanje trenutne lokacije korisnika uz proveru dozvola
     fun loadUserLocation(onPermissionDenied: () -> Unit) {
         viewModelScope.launch {
             if (hasLocationPermission()) {
                 try {
                     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                         location?.let {
-                            // Ažuriraj latitude i longitude prema korisnikovoj trenutnoj lokaciji
                             lat.value = it.latitude
                             lng.value = it.longitude
                             _userLocation.value = it
                         }
                     }
                 } catch (e: SecurityException) {
-                    // Obrada SecurityException u slučaju da korisnik odbije dozvolu u runtime-u
                     e.printStackTrace()
                 }
             } else {
-                // Ako dozvola nije odobrena, zovi callback za traženje dozvole
                 onPermissionDenied()
             }
         }
     }
 
-    // Dodavanje nove istorijske lokacije
-    fun addHistoricalLocation(location: HistoricalLocation) {
-        viewModelScope.launch {
-            val updatedList = _historicalLocations.value.toMutableList()
-            updatedList.add(location)
-            _historicalLocations.value = updatedList
-        }
+    private fun loadUserHistoricalLocations() {
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.collection("users_historical_locations")
+            .get()
+            .addOnSuccessListener { result ->
+                val locations = result.mapNotNull { document ->
+                    document.toObject(HistoricalLocation::class.java)
+                }
+                _userAddedLocations.value = locations
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Greška prilikom učitavanja lokacija: ", e)
+            }
     }
-
     // Učitavanje unapred definisanih istorijskih lokacija (demo podaci, mogu se zameniti podacima iz Firebase-a)
     fun loadHistoricalLocations() {
         viewModelScope.launch {
             val preloadedLocations = listOf(
                 HistoricalLocation(
-                    id = 1L,
+                    id = 1L.toString(),
                     title = "Spomenik oslobodiocima Nisa",
                     description = "Trg kralja Milana",
-                    position = LatLng(43.32224428625793, 21.895896158653333)
+                   // position = LatLng(43.32224428625793, 21.895896158653333)
+                    latitude = 43.32224428625793,
+                    longitude = 21.895896158653333
+                  //  , question = ""
                 ),
                 HistoricalLocation(
-                    id = 2L,
+                    id = "2L",
                     title = "Trg kralja Milana",
                     description = "Generala Milojka Lesjanina 8, Nis",
-                    position = LatLng(43.3233682386596, 21.896067821731087)
+                    latitude = 43.3233682386596,
+                    longitude = 21.896067821731087
+                    //, question = ""
                 ),
                 HistoricalLocation(
-                    id = 3L,
+                    id = "3L",
                     title = "Niska tvrdjava",
                     description = "Djuke Dinic, Nis",
-                    position = LatLng(43.32723947110277, 21.89546700694617)
+                    latitude = 43.32723947110277,
+                    longitude = 21.89546700694617
+                //, question = ""
+
                 ),
                 HistoricalLocation(
-                    id = 4L,
+                    id = "4L",
                     title = "Park Svetog Save",
                     description = "Pariske Komune 11, Nis",
-                    position = LatLng(43.3219055325647, 21.91938212968041)
+                    latitude = 43.3219055325647,
+                    longitude = 21.91938212968041
+                    //, question = ""
+
                 ),
                 HistoricalLocation(
-                    id = 5L,
+                    id =" 5L",
                     title = "Cele Kula",
                     description = "Bulevar dr Zorana Djindjica, Nis",
-                    position = LatLng(43.31353763111081, 21.922901187706334)
+                    latitude = 43.31353763111081,
+                    longitude = 21.922901187706334
+                   // , question = ""
+
                 ),
                 HistoricalLocation(
-                    id = 6L,
+                    id = "6L",
                     title = "Spomenik Stevanu Sremcu i Kalci",
                     description = "Kopitareva, Nis",
-                    position = LatLng(43.31891327204544, 21.895280939483666)
+                    latitude = 43.31891327204544,
+                    longitude = 21.895280939483666
+                    //, question = ""
+
                 ),
                 HistoricalLocation(
-                    id = 7L,
+                    id = "7L",
                     title = "Spomenik palim vazduhoplovcima",
                     description = "Episkopska, Nis",
-                    position = LatLng(43.314835237721184, 21.89508144220371)
+                    latitude = 43.314835237721184,
+                    longitude = 21.89508144220371
+                    //, question = ""
+
                 ),
                 HistoricalLocation(
-                    id = 8L,
+                    id = "8L",
                     title = "Spomenik poginulim Crvenoarmejcima",
                     description = "Trg Kralja Aleksandra Ujedinitelja 11, Nis",
-                    position = LatLng(43.318287722136866, 21.890703826861937)
+                    latitude = 43.318287722136866,
+                    longitude = 21.890703826861937
+                   // , question = ""
+
                 ),
                 HistoricalLocation(
-                    id = 9L,
+                    id = "9L",
                     title = "Spomenik Sabanu Bajramovicu",
                     description = "Nisavski kej, Nis",
-                    position = LatLng(43.32356292937282, 21.897844084713718)
+                    latitude = 43.32356292937282,
+                    longitude = 21.897844084713718
+                    //, question = ""
+
                 ),
                 HistoricalLocation(
-                    id = 10L,
+                    id = "10L",
                     title = "Test",
                     description = "Pirot",
-                    position = LatLng(43.16276273763927, 22.600519012015237)
+                    latitude = 43.16276273763927,
+                    longitude = 22.600519012015237
+                    //, question = ""
+
                 )
 
             )
@@ -166,15 +200,23 @@ class MapScreenViewModel (
             for (location in preloadedLocations) {
                 addHistoricalLocationToFirestore(location)
             }
+
         }
+    }
+    // Funkcija za ažuriranje liste istorijskih lokacija
+    fun addHistoricalLocation(location: HistoricalLocation) {
+        _historicalLocations.value = _historicalLocations.value + location
+    }
+    fun addUserHistoricalLocation(location: HistoricalLocation) {
+        _userAddedLocations.value = _userAddedLocations.value + location
     }
     fun checkProximityToLocations(userLocation: Location, historicalLocations: List<HistoricalLocation>): Boolean {
         val thresholdDistance = 50  // Prag u metrima
 
         for (location in historicalLocations) {
             val locationPosition = Location("").apply {
-                latitude = location.position.latitude
-                longitude = location.position.longitude
+                latitude = location.latitude
+                longitude = location.longitude
             }
 
             val distance = userLocation.distanceTo(locationPosition)
@@ -216,4 +258,7 @@ class MapScreenViewModel (
             lng.value = latLng.longitude
         }
     }
+
+
+
 }

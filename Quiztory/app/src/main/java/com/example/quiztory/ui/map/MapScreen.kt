@@ -25,7 +25,6 @@ fun MapScreen(viewModel: MapScreenViewModel,
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    // Permission launcher za runtime zahtev
     val requestLocationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -41,7 +40,6 @@ fun MapScreen(viewModel: MapScreenViewModel,
     // Proveri i učitaj korisničku lokaciju
     LaunchedEffect(key1 = Unit) {
         viewModel.loadUserLocation {
-            // Ako dozvola nije odobrena, zatraži dozvolu
             requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
@@ -58,7 +56,6 @@ fun MapScreen(viewModel: MapScreenViewModel,
             navController=navController,
         )
     } else {
-        // Placeholder ili loader dok se učitava lokacija
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -66,6 +63,4 @@ fun MapScreen(viewModel: MapScreenViewModel,
             Text("Loading map...")
         }
     }
-
-
 }

@@ -23,14 +23,11 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import com.google.firebase.firestore.FirebaseFirestore
 
-// Definišemo data class za pitanja kviza
 data class Question(
     val text: String,
     val options: List<String>,  // Opcije za odgovore
     val correctAnswer: String    // Tačan odgovor
 )
-
-// Definišemo data class za kviz
 data class Quiz(
     val id: Long,
     val locationId: Long,
@@ -204,8 +201,6 @@ fun QuizScreen(locationId: Long, navController: NavHostController) {
                     }
                 }
             }
-
-            // Dugme za povratak
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = { navController.popBackStack() },
@@ -215,7 +210,6 @@ fun QuizScreen(locationId: Long, navController: NavHostController) {
             }
         }
     } else {
-        // Prikazujemo poruku ako kviz nije pronađen
         Column(
             modifier = Modifier
                 .fillMaxSize()
