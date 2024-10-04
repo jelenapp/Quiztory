@@ -1,6 +1,5 @@
 package com.example.quiztory.ui.signup
 
-
 import android.content.Context
 import android.net.Uri
 import android.widget.Toast
@@ -99,9 +98,6 @@ fun SignUpScreen(
 
             ) {
 
-            /**
-             * Logo
-             */
             Image(
                 painter = painterResource(id = if(ThemeViewModel.getInstance().isDarkTheme.value) R.mipmap.quiztorylogo else R.mipmap.quiztorylogo),
                 contentDescription = "Auth image",
@@ -295,11 +291,7 @@ fun SignUpScreen(
             Button(onClick = {
                 uri?.let {
                     viewModel.uploadProfileImage(uri!!, viewModel.uid!!) { imageUrl ->
-                        // Kada se upload završi i dobiješ URL slike, možeš da ažuriraš podatke korisnika
-                       // viewModel.updateUser(imageUrl)
-                        // TODO
-                        //navController.popBackStack(Screen.EditProfile.name, inclusive = true)
-                        navController.navigate(Screen.Profile.name)
+                        navController.navigate(Screen.SignIn.name)
                     }
                 }
             }) {

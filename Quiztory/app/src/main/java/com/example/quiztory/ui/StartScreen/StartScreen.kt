@@ -50,9 +50,6 @@ fun StartScreen(
         Text(
             text = "Quiztory",
             fontSize = 80.sp,
-            // fontWeight = FontWeight.Bold,
-            // fontStyle = FontStyle.Italic,
-            //fontFamily = FontFamily(Font(R.font.font2)),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -69,7 +66,5 @@ fun StartScreen(
     LaunchedEffect(true) {
         delay(300L)
         viewModel.onAppStart(navController)
-       // navController.navigate(Screen.SignIn.name)
-
     }
 }

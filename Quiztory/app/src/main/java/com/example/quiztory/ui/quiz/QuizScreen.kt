@@ -34,7 +34,6 @@ data class Quiz(
     val questions: List<Question>
 )
 
-// Pretpostavimo da imamo repozitorijum za kvizove
 object QuizRepository {
     private val quizzes = listOf(
         Quiz(
@@ -72,13 +71,32 @@ object QuizRepository {
         )
     )
 
-    fun getQuizByLocationId(locationId: Long): Quiz? {
-        return quizzes.find { it.locationId == locationId }
+    fun getQuizByLocationId(locationId: String?): Quiz? {
+        return quizzes.find { it.locationId.toString() == locationId }
     }
 }
 
 class QuizViewModel : ViewModel() {
-    fun getQuizForLocation(locationId: Long, onQuizLoaded: (Quiz?) -> Unit) {
+    fun getQuizFromFirestore(locationId: String, onQuizLoaded: (Quiz?) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+        val quizRef =
+            db.collection("users_historical_locations").whereEqualTo("locationId", locationId)
+
+        quizRef.get()
+            .addOnSuccessListener { documents ->
+                if (documents != null && !documents.isEmpty) {
+                    val quiz = documents.first().toObject(Quiz::class.java)
+                    onQuizLoaded(quiz)
+                } else {
+                    onQuizLoaded(null)  // Nema kviza za ovu lokaciju
+                }
+            }
+            .addOnFailureListener {
+                onQuizLoaded(null)  // U slučaju greške, vrati null
+            }
+    }
+
+    fun getQuizForLocation(locationId: String?, onQuizLoaded: (Quiz?) -> Unit) {
         viewModelScope.launch {
             // Učitavanje kviza iz repozitorijuma
             val quiz = QuizRepository.getQuizByLocationId(locationId)
@@ -100,10 +118,10 @@ class QuizViewModel : ViewModel() {
                 }
             }
             .addOnFailureListener { exception ->
-                // Obradi grešku
                 onPointsLoaded(0)
             }
     }
+
     fun updatePointsInFirestore(userId: String, newPoints: Int) {
         val db = FirebaseFirestore.getInstance()
         val userRef = db.collection("users").document(userId)
@@ -117,34 +135,30 @@ class QuizViewModel : ViewModel() {
                 // Obradi grešku
             }
     }
-
-
 }
 
 @Composable
-fun QuizScreen(locationId: Long, navController: NavHostController) {
+fun QuizScreen(locationId: String?, isUserLocation: Boolean, navController: NavHostController) {
     var points by remember { mutableStateOf(0) }
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     if (userId == null) {
-        // Prikaz poruke ako korisnik nije prijavljen
         Text("Please log in to take the quiz.")
         return
     }
-
-    // Kreiramo ViewModel
     val viewModel = QuizViewModel()
-
-    // Pozivamo funkciju za dobijanje kviza na osnovu ID-a lokacije
-    // I koristimo remember kako bi sačuvali state unutar kompozicije
     val quiz = remember { mutableStateOf<Quiz?>(null) }
-
-    // Nabavljamo trenutni kontekst za korišćenje u `Toast` funkciji
     val context = LocalContext.current
 
-    // Učitavamo kviz za lokaciju unutar `LaunchedEffect`
-    LaunchedEffect(locationId) {
-        viewModel.getQuizForLocation(locationId) { loadedQuiz ->
-            quiz.value = loadedQuiz
+    LaunchedEffect(locationId, isUserLocation) {
+        if (isUserLocation) {
+            viewModel.getQuizFromFirestore(locationId.toString()) { loadedQuiz ->
+                quiz.value = loadedQuiz
+            }
+        } else {
+            // Učitaj hardkodirani kviz
+            viewModel.getQuizForLocation(locationId) { loadedQuiz ->
+                quiz.value = loadedQuiz
+            }
         }
     }
     // Učitaj bodove korisnika iz Firestore-a

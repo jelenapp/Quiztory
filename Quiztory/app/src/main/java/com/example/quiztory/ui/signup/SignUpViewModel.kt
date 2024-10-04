@@ -50,13 +50,17 @@ class SignUpViewModel private constructor(
     val email = MutableStateFlow("")
 
     val appContext = context
-    companion object{
+
+    companion object {
 
         private var INSTANCE: SignUpViewModel? = null
 
-        fun getInstance(context:Context): SignUpViewModel {
+        fun getInstance(context: Context): SignUpViewModel {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: SignUpViewModel(accountService = AccountService(),context).also { INSTANCE = it }
+                INSTANCE ?: SignUpViewModel(
+                    accountService = AccountService(),
+                    context
+                ).also { INSTANCE = it }
             }
         }
     }
@@ -64,6 +68,7 @@ class SignUpViewModel private constructor(
     fun updateEmail(newEmail: String) {
         email.value = newEmail
     }
+
     fun updateUsername(newUsername: String) {
         username.value = newUsername
     }
@@ -102,8 +107,12 @@ class SignUpViewModel private constructor(
             } else if (password.value != confirmPassword.value) {
                 Toast.makeText(appContext, "Šifre se ne podudaraju!", Toast.LENGTH_SHORT).show()
                 //throw Exception(R.string.password_dont_match.toString())
-            } else if(getUserWithUsername(username.value))
-                Toast.makeText(appContext, "Postoji korisnik sa istim username-om!", Toast.LENGTH_SHORT).show()
+            } else if (getUserWithUsername(username.value))
+                Toast.makeText(
+                    appContext,
+                    "Postoji korisnik sa istim username-om!",
+                    Toast.LENGTH_SHORT
+                ).show()
             else {
                 accountService.signUp(
                     username.value,
@@ -112,11 +121,16 @@ class SignUpViewModel private constructor(
                     phonenumber.value,
                     email.value,
                 )
-                Toast.makeText(appContext, "Poslat je linl za verifikaciju na vas email!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    appContext,
+                    "Poslat je linl za verifikaciju na vas email!",
+                    Toast.LENGTH_SHORT
+                ).show()
                 openAndPopUp()
             }
         }
     }
+
     private val users: UserDbApi = UserDbApi()
 
     private val userRoot = Firebase.firestore.collection("users")
@@ -128,7 +142,8 @@ class SignUpViewModel private constructor(
         }
         return u!!.isNotEmpty()
     }
-    suspend fun getUserWithUsername2(username:String):List<User> {
+
+    suspend fun getUserWithUsername2(username: String): List<User> {
         val querySnapshot = userRoot
             .whereEqualTo("username", username)
             .get()
@@ -143,6 +158,7 @@ class SignUpViewModel private constructor(
     fun setProfilePicture(uri: Uri?) {
         this.profilna = uri
     }
+
     private val storageRef = com.google.firebase.Firebase.storage.reference
     private val profPic = "/profilePicture.jpg"
     private val usersi = "users/"
@@ -163,52 +179,52 @@ class SignUpViewModel private constructor(
             }
     }
 
-private val userAuth: FirebaseAuth = com.google.firebase.Firebase.auth
+    private val userAuth: FirebaseAuth = com.google.firebase.Firebase.auth
 
     fun getSignedUserId(): String? {
 
-    var id: String?
-    runBlocking {
-        id = userAuth.currentUser?.uid
+        var id: String?
+        runBlocking {
+            id = userAuth.currentUser?.uid
+        }
+        return id
     }
-    return id
-}
+
     val uid = getSignedUserId()
-fun uploadProfileImage(
-    uri: Uri,
-    uid: String,
-    onSuccess: (String) -> Unit
-) {
+    fun uploadProfileImage(
+        uri: Uri,
+        uid: String,
+        onSuccess: (String) -> Unit
+    ) {
 
-    val upr = storageRef.child(usersi + uid + profPic)
+        val upr = storageRef.child(usersi + uid + profPic)
 
-    val metadata = storageMetadata {
-        contentType = "image/jpeg"
-    }
+        val metadata = storageMetadata {
+            contentType = "image/jpeg"
+        }
 
-    GlobalScope.launch(Dispatchers.IO) {
+        GlobalScope.launch(Dispatchers.IO) {
 
-        // Upload file and metadata to the path upr
-        val uploadTask = upr.putFile(uri, metadata)
+            // Upload file and metadata to the path upr
+            val uploadTask = upr.putFile(uri, metadata)
 
-        uploadTask
-            .addOnProgressListener {
+            uploadTask
+                .addOnProgressListener {
 
-                val progress = (100.0 * it.bytesTransferred) / it.totalByteCount
-                Log.d("PICTURE_UPLOAD", "Upload is $progress% done")
+                    val progress = (100.0 * it.bytesTransferred) / it.totalByteCount
+                    Log.d("PICTURE_UPLOAD", "Upload is $progress% done")
 
-            }.addOnPausedListener {
-                Log.d("PICTURE_UPLOAD", "Upload is paused")
+                }.addOnPausedListener {
+                    Log.d("PICTURE_UPLOAD", "Upload is paused")
 
-            }.addOnFailureListener {
-                Log.e("PICTURE_UPLOAD", "Neuspešno uploadovanje slike: ${it.message}")
+                }.addOnFailureListener {
+                    Log.e("PICTURE_UPLOAD", "Neuspešno uploadovanje slike: ${it.message}")
 
-            }.addOnSuccessListener {
-                upr.downloadUrl.addOnSuccessListener { uri ->
-                    onSuccess(uri.toString()) // Prosledi URL slike
+                }.addOnSuccessListener {
+                    upr.downloadUrl.addOnSuccessListener { uri ->
+                        onSuccess(uri.toString()) // Prosledi URL slike
+                    }
                 }
-            }
+        }
     }
-}
-
 }

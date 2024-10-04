@@ -140,7 +140,7 @@ fun LocationMap(
                             Log.d("MarkerClick", "Navigating to quiz/${location.id}")
 
                             try {
-                                navController.navigate("quiz/${location.id}")
+                                navController.navigate("quiz/${location.id}/false")
                             } catch (e: Exception) {
                                 Log.e(
                                     "NavigationError", "Error navigating to quiz screen: ${e.localizedMessage}"
@@ -163,7 +163,8 @@ fun LocationMap(
                             Log.d("MarkerClick", "Navigating to quiz/${location.id}")
 
                             try {
-                               // navController.navigate("quiz/${location.id}")
+                                navController.navigate("quiz/${location.id}/true") // true označava korisničku lokaciju
+                                true
                             } catch (e: Exception) {
                                 Log.e(
                                     "NavigationError", "Error navigating to quiz screen: ${e.localizedMessage}"

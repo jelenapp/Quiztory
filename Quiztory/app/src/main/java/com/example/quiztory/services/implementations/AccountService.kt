@@ -13,10 +13,6 @@ import kotlinx.coroutines.tasks.await
 
 class AccountService constructor() {
 
-    val currentUserId: String
-        get() = Firebase.auth.currentUser?.uid.orEmpty()
-
-
 
     fun hasUser(): Boolean {
         return Firebase.auth.currentUser != null

@@ -18,14 +18,12 @@ import kotlinx.coroutines.launch
 
 class MapScreenViewModel (
     private val fusedLocationClient: FusedLocationProviderClient,
-    private val appContext: Context // Kontekst aplikacije
+    private val appContext: Context
 ) : ViewModel() {
 
-    // Trenutna lokacija korisnika
     private val _userLocation = MutableStateFlow<Location?>(null)
     val userLocation: StateFlow<Location?> = _userLocation
 
-    // Lista istorijskih lokacija
     private val _historicalLocations = MutableStateFlow<List<HistoricalLocation>>(emptyList())
     val historicalLocations: StateFlow<List<HistoricalLocation>> = _historicalLocations
 
@@ -33,18 +31,18 @@ class MapScreenViewModel (
     val userAddedLocations: StateFlow<List<HistoricalLocation>> = _userAddedLocations
 
     init {
-        loadHistoricalLocations() // Pozivanje funkcije prilikom inicijalizacije ViewModel-a
+        loadHistoricalLocations()
         loadUserHistoricalLocations()
 
     }
-    // Provera dozvola
+
     private fun hasLocationPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             appContext,
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
     }
-    // Latitude i longitude su sada u okviru instance ViewModel-a
+
     var lat = mutableStateOf(43.321445)  // Inicijalno postavljeno na Niš, kasnije se ažurira
         private set
     var lng = mutableStateOf(21.896104)  // Inicijalno postavljeno na Niš, kasnije se ažurira
@@ -66,6 +64,7 @@ class MapScreenViewModel (
                 //Log.e("Firestore", "Greška prilikom dodavanja lokacije: ", e)
             }
     }
+
     fun loadUserLocation(onPermissionDenied: () -> Unit) {
         viewModelScope.launch {
             if (hasLocationPermission()) {
@@ -100,7 +99,7 @@ class MapScreenViewModel (
                 Log.e("Firestore", "Greška prilikom učitavanja lokacija: ", e)
             }
     }
-    // Učitavanje unapred definisanih istorijskih lokacija (demo podaci, mogu se zameniti podacima iz Firebase-a)
+
     fun loadHistoricalLocations() {
         viewModelScope.launch {
             val preloadedLocations = listOf(
@@ -108,10 +107,10 @@ class MapScreenViewModel (
                     id = 1L.toString(),
                     title = "Spomenik oslobodiocima Nisa",
                     description = "Trg kralja Milana",
-                   // position = LatLng(43.32224428625793, 21.895896158653333)
+                    // position = LatLng(43.32224428625793, 21.895896158653333)
                     latitude = 43.32224428625793,
                     longitude = 21.895896158653333
-                  //  , question = ""
+                    //  , question = ""
                 ),
                 HistoricalLocation(
                     id = "2L",
@@ -127,7 +126,7 @@ class MapScreenViewModel (
                     description = "Djuke Dinic, Nis",
                     latitude = 43.32723947110277,
                     longitude = 21.89546700694617
-                //, question = ""
+                    //, question = ""
 
                 ),
                 HistoricalLocation(
@@ -140,12 +139,12 @@ class MapScreenViewModel (
 
                 ),
                 HistoricalLocation(
-                    id =" 5L",
+                    id = " 5L",
                     title = "Cele Kula",
                     description = "Bulevar dr Zorana Djindjica, Nis",
                     latitude = 43.31353763111081,
                     longitude = 21.922901187706334
-                   // , question = ""
+                    // , question = ""
 
                 ),
                 HistoricalLocation(
@@ -172,7 +171,7 @@ class MapScreenViewModel (
                     description = "Trg Kralja Aleksandra Ujedinitelja 11, Nis",
                     latitude = 43.318287722136866,
                     longitude = 21.890703826861937
-                   // , question = ""
+                    // , question = ""
 
                 ),
                 HistoricalLocation(
@@ -203,14 +202,20 @@ class MapScreenViewModel (
 
         }
     }
+
     // Funkcija za ažuriranje liste istorijskih lokacija
     fun addHistoricalLocation(location: HistoricalLocation) {
         _historicalLocations.value = _historicalLocations.value + location
     }
+
     fun addUserHistoricalLocation(location: HistoricalLocation) {
         _userAddedLocations.value = _userAddedLocations.value + location
     }
-    fun checkProximityToLocations(userLocation: Location, historicalLocations: List<HistoricalLocation>): Boolean {
+
+    fun checkProximityToLocations(
+        userLocation: Location,
+        historicalLocations: List<HistoricalLocation>
+    ): Boolean {
         val thresholdDistance = 50  // Prag u metrima
 
         for (location in historicalLocations) {
@@ -228,13 +233,6 @@ class MapScreenViewModel (
         }
         return false
     }
-    fun getLocationById(id: String): HistoricalLocation? {
-        return _historicalLocations.value.find { it.id.toString() == id }
-    }
-
-    fun addPointsToUser(points: Int) {
-        // Ažuriranje bodova korisnika u Firebase ili lokalnoj bazi
-    }
 
 
     companion object {
@@ -244,7 +242,10 @@ class MapScreenViewModel (
             private set
         private var INSTANCE: MapScreenViewModel? = null
 
-        fun getInstance(context: Context, fusedLocationClient: FusedLocationProviderClient): MapScreenViewModel {
+        fun getInstance(
+            context: Context,
+            fusedLocationClient: FusedLocationProviderClient
+        ): MapScreenViewModel {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: MapScreenViewModel(
                     fusedLocationClient = fusedLocationClient,
@@ -258,7 +259,4 @@ class MapScreenViewModel (
             lng.value = latLng.longitude
         }
     }
-
-
-
 }

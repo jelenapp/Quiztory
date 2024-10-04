@@ -183,15 +183,6 @@ fun SignInScreen(
                     .padding(4.dp)
             )
 
-//            TextButton(onClick = {
-//                viewModel.onSignUpClick {
-//               //     navController.popBackStack(Screen.SignIn.name, inclusive = false)
-//                 //   navController.navigate(Screen.Filter.name)
-//                }
-//            }) {
-//         //       Text(text = stringResource(R.string.continue_as_guest), fontSize = 16.sp)
-//            }
-
         }
     }
 }

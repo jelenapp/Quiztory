@@ -37,7 +37,6 @@ fun MapScreen(viewModel: MapScreenViewModel,
         }
     }
 
-    // Proveri i učitaj korisničku lokaciju
     LaunchedEffect(key1 = Unit) {
         viewModel.loadUserLocation {
             requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -63,4 +62,5 @@ fun MapScreen(viewModel: MapScreenViewModel,
             Text("Loading map...")
         }
     }
+    val viewModelInstance = remember { MapScreenViewModel(fusedLocationClient, context) }
 }

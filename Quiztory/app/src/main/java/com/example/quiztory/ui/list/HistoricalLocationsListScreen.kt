@@ -54,13 +54,26 @@ data class HistoricalLocation(
 fun HistoricalLocationsScreen(navController: NavController) {
     val viewModel = remember { HistoricalLocationsViewModel() }
     val locations = viewModel.historicalLocations.collectAsState(initial = emptyList())
+    val userAddedLocations = viewModel.userAddedLocations.collectAsState(initial = emptyList())
+
 
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(modifier = Modifier.height(20.dp))
         Text("Istorijske lokacije", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
+// Konvertuj LatLng u HistoricalLocation
+        val userAddedLocationsAsHistoricalLocations = userAddedLocations.value.map { location ->
+            HistoricalLocation(
+                id = location.latitude.toString() + location.longitude.toString(), // ili neki drugi način generisanja ID-a
+                title = location.title,
+                latitude = location.latitude,
+                longitude = location.longitude,
+                description = location.description
+            )
+        }
+        val allLocations = locations.value + userAddedLocationsAsHistoricalLocations
 
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(locations.value) { location ->
+            items(allLocations) { location ->
                 ListItem(
                     modifier = Modifier.clickable {
                         navController.navigate("quiz/${location.id}")
@@ -85,6 +98,7 @@ class HistoricalLocationsViewModel : ViewModel() {
         fetchHistoricalLocations()
         fetchUserAddedLocations()
     }
+
     private fun fetchHistoricalLocations() {
         viewModelScope.launch {
             val historicalLocations = fetchLocationsFromCollection("historical_locations")
@@ -95,27 +109,32 @@ class HistoricalLocationsViewModel : ViewModel() {
             //displayMarkersOnMap(map, allLocations)
             // Postavljanje svih lokacija u MutableState
             _historicalLocations.value = allLocations
-            Log.e("Učitane lokacije"," ${_historicalLocations.value}")
+            Log.e("Učitane lokacije", " ${_historicalLocations.value}")
 
         }
     }
+
     private fun fetchUserAddedLocations() {
         viewModelScope.launch {
             Log.d("FetchUserAddedLocations", "Fetching user-added locations...")
             firestore.collection("users_historical_locations").get()
                 .addOnSuccessListener { documents ->
-                    Log.d("FetchUserAddedLocations", "Successfully fetched user-added locations. Document count: ${documents.size()}")
+                    Log.d(
+                        "FetchUserAddedLocations",
+                        "Successfully fetched user-added locations. Document count: ${documents.size()}"
+                    )
                     // Pretvori dokumente u listu korisničkih istorijskih lokacija
                     val userLocations = documents.map { document ->
                         HistoricalLocation(
-                            id = (document.getLong("id") ?: 0).toString(),
+                            id = document.id,
                             name = document.getString("name") ?: "",
                             description = document.getString("description") ?: "",
                             latitude = document.getDouble("latitude") ?: 0.0,
                             longitude = document.getDouble("longitude") ?: 0.0,
                             title = document.getString("title") ?: "",
                             answers = (document.get("answers") as? List<String>) ?: emptyList(),
-                            correctAnswerIndex = (document.getLong("correctAnswerIndex")?.toInt() ?: -1)
+                            correctAnswerIndex = (document.getLong("correctAnswerIndex")?.toInt()
+                                ?: -1)
                         )
                     }
                     if (userLocations.isNotEmpty()) {
@@ -123,10 +142,7 @@ class HistoricalLocationsViewModel : ViewModel() {
                     } else {
                         Log.d("FetchUserAddedLocations", "No user-added locations found.")
                     }
-                    // Kombinuj korisničke lokacije i hardkodirane lokacije
-                    //val combinedLocations = _historicalLocations.value + userLocations
-                    //_historicalLocations.value = combinedLocations // Ažuriraj stanje sa kombinovanim lokacijama
-                    _userAddedLocations.value = userLocations // Sačuvaj korisničke lokacije
+                       _userAddedLocations.value = userLocations
                 }
                 .addOnFailureListener { exception ->
                     // Logovanje greške
@@ -137,21 +153,25 @@ class HistoricalLocationsViewModel : ViewModel() {
 
 
     private suspend fun fetchLocationsFromCollection(collectionName: String): List<HistoricalLocation> {
-        Log.d("FetchLocations", "fetchLocationsFromCollection pozvana za kolekciju: $collectionName")
+        Log.d(
+            "FetchLocations",
+            "fetchLocationsFromCollection pozvana za kolekciju: $collectionName"
+        )
         return suspendCancellableCoroutine { continuation ->
             firestore.collection(collectionName).get()
                 .addOnSuccessListener { documents ->
                     Log.d("FetchLocations", "Dokumenti učitani iz Firestore-a")
                     val locations = documents.map { document ->
                         HistoricalLocation(
-                            id = (document.getLong("id") ?: 0).toString(),
+                            id = document.id,
                             name = document.getString("name") ?: "",
                             description = document.getString("description") ?: "",
                             latitude = document.getDouble("latitude") ?: 0.0,
                             longitude = document.getDouble("longitude") ?: 0.0,
                             title = document.getString("title") ?: "",
                             answers = (document.get("answers") as? List<String>) ?: emptyList(),
-                            correctAnswerIndex = (document.getLong("correctAnswerIndex")?.toInt() ?: -1)
+                            correctAnswerIndex = (document.getLong("correctAnswerIndex")?.toInt()
+                                ?: -1)
                         )
                     }
                     continuation.resume(locations)
@@ -160,45 +180,11 @@ class HistoricalLocationsViewModel : ViewModel() {
 
                 .addOnFailureListener { exception ->
                     continuation.resumeWithException(exception)
-                    Log.e("FetchLocations", "Greška prilikom učitavanja korisničkih lokacija: ${exception.message}")
+                    Log.e(
+                        "FetchLocations",
+                        "Greška prilikom učitavanja korisničkih lokacija: ${exception.message}"
+                    )
                 }
         }
     }
-    fun displayMarkersOnMap(map: GoogleMap, locations: List<HistoricalLocation>) {
-        // Prolazimo kroz sve lokacije i dodajemo markere na mapu
-        for (location in locations) {
-            val latLng = LatLng(location.latitude, location.longitude)
-            map.addMarker(
-                MarkerOptions()
-                    .position(latLng)
-                    .title(location.name)
-                    .snippet(location.description)
-            )
-        }
-    }
-
-//    private fun fetchHistoricalLocations() {
-//        viewModelScope.launch {
-//            firestore.collection("historical_locations").get()
-//                .addOnSuccessListener { documents ->
-//                    val locations = documents.map { document ->
-//                        HistoricalLocation(
-//                            id = (document.getLong("id") ?: 0).toString(),
-//                            name = document.getString("name") ?: "",
-//                            description = document.getString("description") ?: "",
-//                            latitude = document.getDouble("latitude") ?: 0.0,
-//                            longitude = document.getDouble("longitude") ?: 0.0,
-//                            title = document.getString("title") ?: "",
-//                            answers = (document.get("answers") as? List<String>) ?: emptyList(), // Učitavanje odgovora
-//                            correctAnswerIndex = (document.getLong("correctAnswerIndex")?.toInt() ?: -1) // Učitavanje indeksa tačnog odgovora
-//
-//                        )
-//                    }
-//                    _historicalLocations.value = locations
-//                }
-//                .addOnFailureListener { exception ->
-//                }
-//
-//        }
-//    }
 }

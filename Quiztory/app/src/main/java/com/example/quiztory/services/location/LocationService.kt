@@ -41,7 +41,7 @@ class LocationService : Service() {
             Log.d("LocationService", "Lokacija promenjena: ${location.latitude}, ${location.longitude}")
 
             sendLocationToServer(location)
-            Log.d("LocationService", "Lokacija poslata serveru") // Dodaj log ovde
+            Log.d("LocationService", "Lokacija poslata serveru")
 
             // Koristimo CoroutineScope za asinhronu proveru objekata u blizini
             serviceScope.launch {
@@ -99,7 +99,7 @@ class LocationService : Service() {
                     LocationManager.GPS_PROVIDER,
                     10000L, 10f, locationListener, Looper.getMainLooper()
                 )
-                Log.d(TAG, "Location updates started")  // Log kada su ažuriranja lokacije pokrenuta
+                Log.d(TAG, "Location updates started")
 
             }
         }catch (e:Exception){
@@ -132,11 +132,10 @@ class LocationService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         locationManager.removeUpdates(locationListener)
-        Log.d(TAG, "LocationService stopped")  // Log kada se servis zaustavi
+        Log.d(TAG, "LocationService stopped")
         serviceScope.cancel()  // Otkazujemo sve korutine kada se servis uništi,  I obavezno je da se korutina otkaže (serviceScope.cancel()) kada se servis zaustavi kako bi se izbegli curenja memorije (memory leaks).
 
     }
-    // Funkcija koja proverava bliske objekte i prikazuje notifikacije
     private suspend fun checkAndNotifyNearbyObjects(location: Location) {
         try {
             val nearbyObjects = checkNearbyObjects(location.latitude, location.longitude)
@@ -153,7 +152,6 @@ class LocationService : Service() {
             Log.e(TAG, "Error while checking nearby objects", e)
         }
     }
-    // Funkcija koja se zove za periodičnu proveru objekata u blizini
     private suspend fun checkNearbyObjects(lat: Double, lon: Double): List<NearbyObject> {
         val firestore = FirebaseFirestore.getInstance()
 
@@ -175,7 +173,7 @@ class LocationService : Service() {
                                 // Proveravamo da li su koordinate validne
                                 if (nearbyObject.latitude == 0.0 && nearbyObject.longitude == 0.0) {
                                     Log.w("LocationService", "Objekat ${nearbyObject.title} ima nevalidne koordinate (0.0, 0.0)")
-                                    continue  // Preskoči ovaj objekat
+                                    continue
                                 }
                                 val distance = calculateDistance(
                                     lat, lon,
@@ -206,26 +204,14 @@ class LocationService : Service() {
         Location.distanceBetween(lat1, lon1, lat2, lon2, results)
         return results[0]  // Vraća udaljenost u metrima
     }
-//fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-//    val earthRadius = 6371e3 // Zemljin poluprečnik u metrima
-//    val dLat = Math.toRadians(lat2 - lat1)
-//    val dLon = Math.toRadians(lon2 - lon1)
-//
-//    val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-//            Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-//            Math.sin(dLon / 2) * Math.sin(dLon / 2)
-//    val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-//
-//    return earthRadius * c // Udaljenost u metrima
-//}
 
-    // Funkcija za prikazivanje notifikacije
+
     private fun showNotification(nearbyObject: NearbyObject) {
         Log.d("LocationService", "Prikazivanje notifikacije za objekat: ${nearbyObject.title}")
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("objectId", nearbyObject.id)  // Možeš proslediti ID objekta ili korisnika
+            putExtra("objectId", nearbyObject.id)
         }
 
         val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)

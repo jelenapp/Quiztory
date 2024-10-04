@@ -31,7 +31,6 @@ data class NearbyObject(
         }
     }
 
-    // Implementacija Parcelable
     constructor(parcel: Parcel) : this(
         parcel.readLong(),
         parcel.readString() ?: "",

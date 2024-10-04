@@ -45,7 +45,6 @@ import com.example.quiztory.ui.signup.SignUpScreen
 import com.example.quiztory.ui.theme.QuiztoryTheme
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.FirebaseApp
-import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : ComponentActivity() {
     private val LOCATION_PERMISSION_REQUEST_CODE = 1000
@@ -87,15 +86,17 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun QuiztoryApp(context: Context) {
-    //val context = LocalContext.current
-
     val navController = rememberNavController()
     val createEventVM = MapScreenViewModel
-
 
     Box(modifier = Modifier.fillMaxSize()) {
         Surface(modifier = Modifier.fillMaxSize()) {
             NavHost(navController = navController, startDestination = Screen.Start.name) {
+                composable("quiz/{locationId}/{isUserLocation}") { backStackEntry ->
+                    val locationId = backStackEntry.arguments?.getString("locationId")
+                    val isUserLocation = backStackEntry.arguments?.getString("isUserLocation")?.toBoolean() ?: false
+                    QuizScreen(locationId = locationId, navController = navController, isUserLocation = isUserLocation)
+                }
 
                 composable(Screen.SignIn.name) {
                     SignInScreen(navController = navController, context = context)
@@ -116,19 +117,12 @@ fun QuiztoryApp(context: Context) {
                     MapScreen(viewModel = viewModel, navController = navController, context = context)
                 }
 
-//                composable(
-//                    route = "${Screen.Event.name}/{event}",
-//                    arguments = listOf(navArgument("event") { type = NavType.StringType })
-//                ) { backStackEntry ->
-//
-//
-//                }
                 composable(route = Screen.LocationMap.name) {
                     val mapScreenViewModel: MapScreenViewModel= viewModel()
                     LocationMap(
                         onMapLongClick = { latLng ->
                             createEventVM.setCoordinates(latLng)
-                            navController.navigate(Screen.CreateEvent.name)
+                            //navController.navigate(Screen.CreateEvent.name)
                         },
                         viewModel = mapScreenViewModel,
                         navController=navController
@@ -140,10 +134,10 @@ fun QuiztoryApp(context: Context) {
                         //navArgument("userId") { type = NavType.StringType }
                     )
                 ) { backStackEntry ->
-                    val locationId = backStackEntry.arguments?.getLong("locationId")
+                    val locationId = backStackEntry.arguments?.getString("locationId")
                     //val userId = backStackEntry.arguments?.getString("userId")
                     if (locationId != null ) {
-                        QuizScreen(locationId = locationId, navController = navController)
+                        QuizScreen(locationId = locationId, navController = navController, isUserLocation = true)
                     }
                 }
             }
@@ -176,7 +170,6 @@ fun QuiztoryApp(context: Context) {
     }
 }
 enum class Screen {
-    Profile,
     SignIn,
     SignUp,
     Start,
